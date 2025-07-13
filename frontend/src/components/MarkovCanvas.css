@@ -1,0 +1,160 @@
+.markov-canvas-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.markov-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  background-color: #fafafa;
+  border-radius: 8px;
+  transition: cursor 0.2s ease;
+}
+
+.markov-canvas:hover {
+  background-color: #f5f5f5;
+}
+
+.markov-canvas.creating-edge {
+  cursor: cell;
+}
+
+.canvas-hint {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  z-index: 10;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Node animations */
+@keyframes nodeSelect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes nodeCreate {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Edge animations */
+@keyframes edgeCreate {
+  0% {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Probability change animations */
+@keyframes probabilityChange {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* Simulation running state */
+.markov-canvas.simulating {
+  cursor: default;
+}
+
+.markov-canvas.simulating::after {
+  content: 'Simulation Running...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(52, 152, 219, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  z-index: 5;
+  pointer-events: none;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Responsive canvas */
+@media (max-width: 768px) {
+  .markov-canvas {
+    min-height: 400px;
+  }
+  
+  .canvas-hint {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* Accessibility */
+.markov-canvas:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.markov-canvas.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.markov-canvas.loading::after {
+  content: 'Loading...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  z-index: 10;
+  animation: fadeIn 0.3s ease-in-out;
+} 

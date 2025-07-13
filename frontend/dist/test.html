@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markov Chain Simulator - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Markov Chain Simulator - Test Page</h1>
+    
+    <div class="test-box">
+        <p class="success">✓ Server is working!</p>
+        <p>If you can see this page, the web server is functioning correctly.</p>
+    </div>
+
+    <div class="test-box">
+        <h2>Backend Connection Test</h2>
+        <p>Click the button below to test the connection to the backend server:</p>
+        <button id="testBackend">Test Backend Connection</button>
+        <div id="backendResult" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>Next Steps</h2>
+        <ol>
+            <li>Make sure the backend server is running at <code>http://localhost:8000</code></li>
+            <li>Try accessing the main application at <a href="index.html">index.html</a></li>
+            <li>Check the browser console (F12) for any errors</li>
+        </ol>
+    </div>
+
+    <script>
+        document.getElementById('testBackend').addEventListener('click', async () => {
+            const resultElement = document.getElementById('backendResult');
+            resultElement.innerHTML = "Testing connection...";
+            
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    resultElement.innerHTML = `<p class="success">✓ Backend connection successful!</p>
+                                              <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    resultElement.innerHTML = `<p style="color: orange;">⚠️ Backend responded but status is not 'healthy'</p>
+                                              <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<p style="color: red;">✗ Failed to connect to backend: ${error.message}</p>
+                                          <p>Make sure the backend server is running at http://localhost:8000</p>`;
+            }
+        });
+    </script>
+</body>
+</html> 

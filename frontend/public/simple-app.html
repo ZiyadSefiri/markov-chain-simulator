@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Markov Chain Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .app-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .app-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .app-content {
+            display: flex;
+            padding: 1rem;
+            gap: 1rem;
+        }
+        .canvas-container {
+            flex: 2;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: 500px;
+            position: relative;
+        }
+        .controls-container {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1rem;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        .node {
+            position: absolute;
+            background-color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            user-select: none;
+        }
+        .node.selected {
+            background-color: #2ecc71;
+        }
+        .control-section {
+            margin-bottom: 1rem;
+        }
+        .control-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.25rem 0;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .run-btn {
+            background-color: #2ecc71;
+            margin-top: 1rem;
+        }
+        .run-btn:hover {
+            background-color: #27ae60;
+        }
+        .clear-btn {
+            background-color: #e74c3c;
+        }
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+        .node-list {
+            margin-top: 1rem;
+        }
+        .node-item {
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.25rem;
+            margin: 0.25rem 0;
+        }
+        .simulation-results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .step-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .step-slider {
+            flex: 1;
+            margin: 0 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1>Simple Markov Chain Simulator</h1>
+        <p>Click to add nodes, select nodes to create edges, then run simulation</p>
+    </div>
+    
+    <div class="app-content">
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="markovCanvas"></canvas>
+        </div>
+        
+        <div class="controls-container">
+            <div class="control-section">
+                <h3>Nodes</h3>
+                <p>Click on the canvas to add nodes</p>
+                <div id="nodeList" class="node-list"></div>
+            </div>
+            
+            <div class="control-section">
+                <h3>Edges</h3>
+                <div id="edgeControls">
+                    <p>Select a node first to create edges</p>
+                </div>
+                <div id="edgeList"></div>
+            </div>
+            
+            <div class="control-section">
+                <h3>Simulation</h3>
+                <button id="runSimulation" class="run-btn">Run Simulation</button>
+                <button id="clearAll" class="clear-btn">Clear All</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="simulationResults" style="display: none;" class="simulation-results">
+        <h3>Simulation Results</h3>
+        <div class="step-control">
+            <button id="playBtn">Play</button>
+            <input type="range" id="stepSlider" class="step-slider" min="0" max="20" value="0">
+            <span id="stepInfo">Step 0/20</span>
+        </div>
+        <div id="stepResults"></div>
+    </div>
+
+    <script>
+        // Simple Markov Chain Simulator
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // State
+        let nodes = [];
+        let edges = [];
+        let selectedNode = null;
+        let isCreatingEdge = false;
+        let simulationData = null;
+        let currentStep = 0;
+        let nodeIdCounter = 0;
+        let edgeIdCounter = 0;
+        
+        // DOM Elements
+        const canvas = document.getElementById('markovCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const nodeList = document.getElementById('nodeList');
+        const edgeControls = document.getElementById('edgeControls');
+        const edgeList = document.getElementById('edgeList');
+        const runSimulationBtn = document.getElementById('runSimulation');
+        const clearAllBtn = document.getElementById('clearAll');
+        const simulationResults = document.getElementById('simulationResults');
+        const stepSlider = document.getElementById('stepSlider');
+        const stepInfo = document.getElementById('stepInfo');
+        const stepResults = document.getElementById('stepResults');
+        const playBtn = document.getElementById('playBtn');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = canvasContainer.clientWidth;
+            canvas.height = canvasContainer.clientHeight;
+            draw();
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Node functions
+        function addNode(x, y, probability = 0.5) {
+            const id = `node_${nodeIdCounter++}`;
+            nodes.push({
+                id,
+                position: { x, y },
+                probability
+            });
+            updateNodeList();
+            draw();
+        }
+        
+        function updateNodeProbability(nodeId, probability) {
+            nodes = nodes.map(node => 
+                node.id === nodeId ? { ...node, probability: parseFloat(probability) } : node
+            );
+            updateNodeList();
+            draw();
+        }
+        
+        function selectNode(nodeId) {
+            selectedNode = nodes.find(node => node.id === nodeId);
+            updateEdgeControls();
+            draw();
+        }
+        
+        function updateNodeList() {
+            nodeList.innerHTML = '';
+            nodes.forEach(node => {
+                const nodeItem = document.createElement('div');
+                nodeItem.className = 'node-item';
+                nodeItem.innerHTML = `
+                    <div><strong>${node.id}</strong> (${Math.round(node.position.x)}, ${Math.round(node.position.y)})</div>
+                    <div>
+                        <label>Probability:
+                            <input type="number" min="0" max="1" step="0.1" value="${node.probability}" 
+                                onchange="updateNodeProbability('${node.id}', this.value)" />
+                        </label>
+                    </div>
+                    <button onclick="selectNode('${node.id}')">Select</button>
+                    <button onclick="deleteNode('${node.id}')">Delete</button>
+                `;
+                nodeList.appendChild(nodeItem);
+            });
+        }
+        
+        function deleteNode(nodeId) {
+            nodes = nodes.filter(node => node.id !== nodeId);
+            edges = edges.filter(edge => edge.sender_id !== nodeId && edge.receiver_id !== nodeId);
+            if (selectedNode && selectedNode.id === nodeId) {
+                selectedNode = null;
+                updateEdgeControls();
+            }
+            updateNodeList();
+            updateEdgeList();
+            draw();
+        }
+        
+        // Edge functions
+        function addEdge(senderId, receiverId, probability = 0.5) {
+            const id = `edge_${edgeIdCounter++}`;
+            edges.push({
+                id,
+                sender_id: senderId,
+                receiver_id: receiverId,
+                probability: parseFloat(probability)
+            });
+            updateEdgeList();
+            draw();
+        }
+        
+        function updateEdgeProbability(edgeId, probability) {
+            edges = edges.map(edge => 
+                edge.id === edgeId ? { ...edge, probability: parseFloat(probability) } : edge
+            );
+            updateEdgeList();
+            draw();
+        }
+        
+        function deleteEdge(edgeId) {
+            edges = edges.filter(edge => edge.id !== edgeId);
+            updateEdgeList();
+            draw();
+        }
+        
+        function updateEdgeControls() {
+            edgeControls.innerHTML = '';
+            
+            if (selectedNode) {
+                edgeControls.innerHTML = `
+                    <p>Creating edges from <strong>${selectedNode.id}</strong></p>
+                    <div>
+                        <label>Target node:
+                            <select id="targetNodeSelect">
+                                <option value="">-- Select target --</option>
+                                ${nodes.filter(node => node.id !== selectedNode.id)
+                                    .map(node => `<option value="${node.id}">${node.id}</option>`)
+                                    .join('')}
+                            </select>
+                        </label>
+                    </div>
+                    <div>
+                        <label>Probability:
+                            <input type="number" id="edgeProbability" min="0" max="1" step="0.1" value="0.5" />
+                        </label>
+                    </div>
+                    <button onclick="createEdge()">Create Edge</button>
+                    <button onclick="cancelEdgeCreation()">Cancel</button>
+                `;
+            } else {
+                edgeControls.innerHTML = '<p>Select a node first to create edges</p>';
+            }
+        }
+        
+        function createEdge() {
+            const targetSelect = document.getElementById('targetNodeSelect');
+            const probabilityInput = document.getElementById('edgeProbability');
+            
+            if (targetSelect.value && selectedNode) {
+                addEdge(selectedNode.id, targetSelect.value, probabilityInput.value);
+                targetSelect.value = '';
+            }
+        }
+        
+        function cancelEdgeCreation() {
+            selectedNode = null;
+            updateEdgeControls();
+            draw();
+        }
+        
+        function updateEdgeList() {
+            edgeList.innerHTML = '';
+            edges.forEach(edge => {
+                const edgeItem = document.createElement('div');
+                edgeItem.className = 'node-item';
+                edgeItem.innerHTML = `
+                    <div><strong>${edge.id}</strong>: ${edge.sender_id} → ${edge.receiver_id}</div>
+                    <div>
+                        <label>Probability:
+                            <input type="number" min="0" max="1" step="0.1" value="${edge.probability}" 
+                                onchange="updateEdgeProbability('${edge.id}', this.value)" />
+                        </label>
+                    </div>
+                    <button onclick="deleteEdge('${edge.id}')">Delete</button>
+                `;
+                edgeList.appendChild(edgeItem);
+            });
+        }
+        
+        // Drawing functions
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw edges
+            edges.forEach(edge => {
+                const senderNode = nodes.find(n => n.id === edge.sender_id);
+                const receiverNode = nodes.find(n => n.id === edge.receiver_id);
+                
+                if (senderNode && receiverNode) {
+                    drawEdge(senderNode, receiverNode, edge);
+                }
+            });
+            
+            // Draw nodes
+            nodes.forEach(node => {
+                drawNode(node);
+            });
+        }
+        
+        function drawNode(node) {
+            const radius = 20 + node.probability * 30;
+            const isSelected = selectedNode && selectedNode.id === node.id;
+            
+            ctx.beginPath();
+            ctx.arc(node.position.x, node.position.y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = isSelected ? '#2ecc71' : '#3498db';
+            ctx.fill();
+            
+            ctx.strokeStyle = isSelected ? '#27ae60' : '#2980b9';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.probability.toFixed(2), node.position.x, node.position.y);
+        }
+        
+        function drawEdge(sender, receiver, edge) {
+            const senderRadius = 20 + sender.probability * 30;
+            const receiverRadius = 20 + receiver.probability * 30;
+            
+            // Calculate direction vector
+            const dx = receiver.position.x - sender.position.x;
+            const dy = receiver.position.y - sender.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance === 0) return; // Skip self-loops for simplicity
+            
+            const unitX = dx / distance;
+            const unitY = dy / distance;
+            
+            // Calculate start and end points (not overlapping with nodes)
+            const startX = sender.position.x + unitX * senderRadius;
+            const startY = sender.position.y + unitY * senderRadius;
+            const endX = receiver.position.x - unitX * receiverRadius;
+            const endY = receiver.position.y - unitY * receiverRadius;
+            
+            // Draw edge line
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = Math.max(2, edge.probability * 8);
+            ctx.stroke();
+            
+            // Draw arrowhead
+            const arrowLength = 10;
+            const arrowAngle = Math.PI / 6;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle - arrowAngle),
+                endY - arrowLength * Math.sin(angle - arrowAngle)
+            );
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle + arrowAngle),
+                endY - arrowLength * Math.sin(angle + arrowAngle)
+            );
+            ctx.stroke();
+            
+            // Draw edge label
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+            
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(edge.probability.toFixed(2), midX, midY - 8);
+        }
+        
+        // Canvas event handlers
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if clicking on a node
+            const clickedNode = nodes.find(node => {
+                const dx = x - node.position.x;
+                const dy = y - node.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance <= (20 + node.probability * 30);
+            });
+            
+            if (clickedNode) {
+                selectNode(clickedNode.id);
+            } else {
+                // Create new node
+                const probability = 0.5;
+                addNode(x, y, probability);
+            }
+        });
+        
+        // Simulation functions
+        async function runSimulation() {
+            if (nodes.length === 0) {
+                alert('Please add at least one node before running the simulation');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/simulate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nodes: nodes,
+                        edges: edges
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                simulationData = await response.json();
+                currentStep = 0;
+                
+                // Update nodes with normalized probabilities
+                if (simulationData.normalized_nodes) {
+                    nodes = simulationData.normalized_nodes;
+                    updateNodeList();
+                }
+                
+                // Show simulation results
+                simulationResults.style.display = 'block';
+                stepSlider.max = simulationData.steps.length - 1;
+                stepSlider.value = 0;
+                updateSimulationView();
+                
+            } catch (error) {
+                console.error('Simulation error:', error);
+                alert('Error running simulation: ' + error.message);
+            }
+        }
+        
+        function updateSimulationView() {
+            if (!simulationData || !simulationData.steps) return;
+            
+            const step = simulationData.steps[currentStep];
+            stepInfo.textContent = `Step ${currentStep}/${simulationData.steps.length - 1}`;
+            
+            // Update node probabilities for visualization
+            if (step && step.nodes) {
+                nodes = step.nodes;
+                updateNodeList();
+                draw();
+            }
+            
+            // Update step results display
+            stepResults.innerHTML = '';
+            if (step && step.nodes) {
+                const resultTable = document.createElement('table');
+                resultTable.style.width = '100%';
+                resultTable.style.borderCollapse = 'collapse';
+                resultTable.innerHTML = `
+                    <tr>
+                        <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Node</th>
+                        <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Probability</th>
+                    </tr>
+                    ${step.nodes.map(node => `
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${node.id}</td>
+                            <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">${node.probability.toFixed(4)}</td>
+                        </tr>
+                    `).join('')}
+                `;
+                stepResults.appendChild(resultTable);
+            }
+        }
+        
+        // Event listeners
+        runSimulationBtn.addEventListener('click', runSimulation);
+        
+        clearAllBtn.addEventListener('click', () => {
+            nodes = [];
+            edges = [];
+            selectedNode = null;
+            simulationData = null;
+            simulationResults.style.display = 'none';
+            updateNodeList();
+            updateEdgeList();
+            updateEdgeControls();
+            draw();
+        });
+        
+        stepSlider.addEventListener('input', () => {
+            currentStep = parseInt(stepSlider.value);
+            updateSimulationView();
+        });
+        
+        let playInterval = null;
+        
+        playBtn.addEventListener('click', () => {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+                playBtn.textContent = 'Play';
+                return;
+            }
+            
+            playBtn.textContent = 'Stop';
+            currentStep = 0;
+            stepSlider.value = currentStep;
+            updateSimulationView();
+            
+            playInterval = setInterval(() => {
+                currentStep++;
+                if (currentStep >= simulationData.steps.length) {
+                    clearInterval(playInterval);
+                    playInterval = null;
+                    playBtn.textContent = 'Play';
+                    return;
+                }
+                
+                stepSlider.value = currentStep;
+                updateSimulationView();
+            }, 500);
+        });
+        
+        // Initialize
+        updateNodeList();
+        updateEdgeList();
+        updateEdgeControls();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,351 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.controls h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.control-section {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.control-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: #34495e;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.probability-sum {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+/* Node Management */
+.nodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.node-item {
+  background-color: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.node-item:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.node-item.selected {
+  border-color: #3498db;
+  background-color: #ebf3fd;
+}
+
+.node-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.node-info strong {
+  color: #2c3e50;
+}
+
+.node-position {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.node-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.node-controls label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.node-controls input {
+  flex: 1;
+  padding: 0.25rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.node-controls input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.outgoing-info {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  text-align: right;
+}
+
+/* Edge Management */
+.edge-actions {
+  margin-bottom: 0.5rem;
+}
+
+.edges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.edge-item {
+  background-color: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.edge-item:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.edge-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.edge-info strong {
+  color: #2c3e50;
+}
+
+.edge-direction {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  font-family: monospace;
+}
+
+.edge-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.edge-controls label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.edge-controls input {
+  flex: 1;
+  padding: 0.25rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.edge-controls input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Buttons */
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+.delete-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.create-edge-btn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.create-edge-btn:hover:not(:disabled) {
+  background-color: #219a52;
+}
+
+.create-edge-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.cancel-edge-btn {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.cancel-edge-btn:hover {
+  background-color: #e67e22;
+}
+
+/* Warnings */
+.warnings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.warning-item {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  color: #856404;
+}
+
+.toggle-warnings-btn {
+  background-color: transparent;
+  border: 1px solid #6c757d;
+  color: #6c757d;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.toggle-warnings-btn:hover {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Simulation Controls */
+.simulation-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+}
+
+.run-simulation-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.run-simulation-btn:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.run-simulation-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.clear-all-btn {
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+}
+
+.clear-all-btn:hover:not(:disabled) {
+  background-color: #7f8c8d;
+}
+
+.clear-all-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Instructions */
+.instructions {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  line-height: 1.4;
+}
+
+.instructions p {
+  margin: 0.25rem 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .controls {
+    font-size: 0.85rem;
+  }
+  
+  .node-controls,
+  .edge-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .node-controls label,
+  .edge-controls label {
+    margin-bottom: 0.25rem;
+  }
+  
+  .simulation-controls {
+    flex-direction: column;
+  }
+} 
